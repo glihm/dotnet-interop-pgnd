@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 #ifndef F_OK
 #define F_OK    0
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     }
 
     char *lib_path = argv[1];
-    printf("using lib path: %s\n", lib_path);
+    // printf("using lib path: %s\n", lib_path);
 
     // Check if the library file exists.
     if (access(lib_path, F_OK) == -1)
