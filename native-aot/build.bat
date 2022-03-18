@@ -1,5 +1,5 @@
 @echo off
-cls
+
 :: if first arg is CALLCPP -> must include the sum.dll used by NativeCpp.add.
 IF "%1" == "" (
    echo No C++ call

@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-//On unix make sure to compile using -ldl and -pthread flags.
 
 // Platform specific macros.
 #ifdef WINDOWS
@@ -17,6 +16,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #ifndef F_OK
 #define F_OK    0
@@ -27,9 +27,11 @@ HANDLE load_library(const char *path);
 int csharp_aot_sum_int(HANDLE lib, char *funcName, int a, int b);
 char *csharp_aot_sum_str(HANDLE lib, char *funcName, char *a, char *b);
 
-// Entry point.
-// To work, the native code that wants to call the C#-natively compiled code,
-// we must know the path of the library (dll on windows for instance).
+/*
+ * Entry point.
+ * To work, the native code that wants to call the C#-natively compiled code,
+ * we must know the path of the library (dll on windows for instance).
+ */
 int main(int argc, char *argv[])
 {
     if (argc != 2)
@@ -54,10 +56,12 @@ int main(int argc, char *argv[])
     // Sum two integers
     int sum = csharp_aot_sum_int(lib, "add", 2, 8);
     printf("The sum is %d \n", sum);
+    assert(sum == 10);
 
     // Concatenate two strings
     char *sumstring = csharp_aot_sum_str(lib, "sumstring", "ok", "ko");
     printf("The concatenated string is %s \n", sumstring);
+    assert(strcmp(sumstring, "okko") == 0);
 
     // Free string
     free(sumstring);

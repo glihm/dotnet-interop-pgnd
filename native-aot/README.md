@@ -1,0 +1,54 @@
+# NativeAOT
+
+NativeAOT allows IL code to be compiled into machine code for a specified architecture.
+This can be seen as the trade-off between those two statements:
+> "I want native code with performances and compatible with native code without importing the dotnet runtime"
+
+and
+
+> "I am aware that I am loosing the whole dotnet ecosystem portability"
+
+
+This feature still in preview, the repo is [here](https://github.com/dotnet/runtimelab/tree/feature/NativeAOT) and detailed readme [here](https://github.com/dotnet/runtimelab/blob/feature/NativeAOT/docs/using-nativeaot/README.md).
+
+The code samples comes from here, they are just adapted and extended for comprehension purposes.
+
+## Compilation
+Very easy to add NativeAOT to a project. Just add the NuGet package to your `csproj`.
+```XAML
+<ItemGroup>
+  <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" />
+</ItemGroup>
+```
+
+Then, the project must be `publish`ed as following (for instance for windows x64):
+`dotnet publish -r win-x64 -c Release`
+
+If the compiled application is a library, add the option `/p:NativeLib=Shared`.
+
+And.. that's it. This will output the natively compiled code for the platform/runtime (-r option) specified in the command line.
+
+Important note from the dotnet CLI:
+>   Optimizing assemblies for size, which may change the behavior of the app. Be sure to test after publishing. See: https://aka.ms/dotnet-illink
+
+In this example, the `build.bat` is always recompiling the c program and the `libsharp`. This is not required is for instance only of the two is modified, you just need to recompile the one you want, in a independent fashion.
+
+
+## Usage
+Now we have a native library, it's very common to load native library from native code.
+Windows uses `LoadLibraryA` and Linux `dlopen` for instance. Giving the path of the library, it can be load to then return an handle on it.
+
+To call a function from the C# natively compiled library, we always need to:
+1. Provide the handle on the library we loaded
+2. Provide the function's name
+3. Provide the function's arguments where [marshalling](https://docs.microsoft.com/en-us/dotnet/standard/native-interop/type-marshalling) comes in.
+
+For this example, the library path is given as argument to the main program.
+
+On windows, open a [x64 Native Tools Command Prompt](https://docs.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170) and run:
+
+`> build.bat`
+`> main.exe build\LibSharp.dll`
+
+On linux: TODO.
+//On unix make sure to compile using -ldl and -pthread flags.
