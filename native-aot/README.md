@@ -33,7 +33,7 @@ Important note from the dotnet CLI:
 
 In this example, the `build.[bat/sh]` is always recompiling the c program and the `libsharp`. This is not required is for instance only of the two is modified, you just need to recompile the one you want, in a independent fashion.
 
-For linux, `clang` must be installed.
+For linux, `clang` must be installed as it is used by the dotnet IL compiler.
 Libraries `libz-dev` and `libkrb5-dev` are required.
 
 
@@ -48,10 +48,13 @@ To call a function from the C# natively compiled library, we always need to:
 
 For this example, the library path is given as argument to the main program.
 
+To build the exampe using a call to C++ from the C#, add CALLCPP as argument for build scripts.
+
 On windows, open a [x64 Native Tools Command Prompt](https://docs.microsoft.com/en-us/cpp/build/how-to-enable-a-64-bit-visual-cpp-toolset-on-the-command-line?view=msvc-170) and run:
 
-`> build.bat`
+`> build.bat [CALLCPP]`
 `> main.exe build\LibSharp.dll`
 
-On linux: TODO.
-//On unix make sure to compile using -ldl and -pthread flags.
+On linux, in a terminal run:
+`$ bash build.sh [CALLCPP]`
+`$ main.out build/LibSharp.so`
