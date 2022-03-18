@@ -21,12 +21,20 @@ public static class NativeCpp
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-#if DEBUG
+#if TESTING
     // Runs when used from xUnit interface.
-    [DllImport("../../../../libnative/build/sum.dll", EntryPoint = "add")]
+    #if LINUX
+    [DllImport("../../../../libnative/build/libnative.so", EntryPoint = "add")]
+    #else
+    [DllImport("../../../../libnative/build/libnative.dll", EntryPoint = "add")]
+    #endif
 #else
     // Runs when compiled from command line and for aot with configuration Release.
-    [DllImport("build/sum.dll", EntryPoint = "add")]
+    #if LINUX
+    [DllImport("build/libnative.so", EntryPoint = "add")]
+    #else
+    [DllImport("build/libnative.dll", EntryPoint = "add")]
+    #endif
 #endif
     public static extern Int32 add(Int32 a, Int32 b);
 
