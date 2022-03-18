@@ -31,7 +31,10 @@ And.. that's it. This will output the natively compiled code for the platform/ru
 Important note from the dotnet CLI:
 >   Optimizing assemblies for size, which may change the behavior of the app. Be sure to test after publishing. See: https://aka.ms/dotnet-illink
 
-In this example, the `build.bat` is always recompiling the c program and the `libsharp`. This is not required is for instance only of the two is modified, you just need to recompile the one you want, in a independent fashion.
+In this example, the `build.[bat/sh]` is always recompiling the c program and the `libsharp`. This is not required is for instance only of the two is modified, you just need to recompile the one you want, in a independent fashion.
+
+For linux, `clang` must be installed.
+Libraries `libz-dev` and `libkrb5-dev` are required.
 
 
 ## Usage
