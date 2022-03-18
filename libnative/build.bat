@@ -6,5 +6,6 @@ cl.exe ../*.cpp^
   /D WINDOWS^
   /Od /GS /EHsc /sdl /Zi^
   /LD
+  /Fe libnative.dll
 
 popd
