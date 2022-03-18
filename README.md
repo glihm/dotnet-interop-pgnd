@@ -7,6 +7,8 @@ Playground to test interop between managed and unmanaged code using dotnet.
 From the cross-platform perspective, the solution is [P/Invoke](https://docs.microsoft.com/en-us/dotnet/standard/native-interop/pinvoke).
 With few lines of code, a C# code can call a function from a native library loaded with `DllImport`.
 
+The important point using `DllImport` is to place the dll/so files correctly. The `DllImport` path is relative to the main program executing, and not the C# dll!
+
 
 ## How native code (unmanaged) can call .NET (managed) functions.
 Here, there is two ways:
