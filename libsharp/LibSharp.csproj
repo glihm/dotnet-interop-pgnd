@@ -9,5 +9,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" />
   </ItemGroup>
-
+ 
 </Project>
