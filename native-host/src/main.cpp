@@ -45,7 +45,12 @@ struct lib_args
     int main(int argc, char *argv[])
 #endif
 {
+    bool use_nethost = true;
     // Remove warning.
+    if (argc > 1)
+    {
+	use_nethost = false;
+    }
 
     // Get path of the current program to load files with relative paths.
     stdfs::path *prog_path = resolve_absolute_path(argv[0]);
@@ -53,18 +58,23 @@ struct lib_args
     Dotnet_host *dotnet = new Dotnet_host;
 
     // Step 1: load hostfxr.
-    // OPTION 1:
-    // Nethost automatically searches for the installed hostfxr.dll.
-    //bool loaded = dotnet->hostfxr_load_from_nethost();
+ 
+    bool loaded = false;
+    if (use_nethost)
+    {
+	// Nethost automatically searches for the installed hostfxr.dll.
+	loaded = dotnet->hostfxr_load_from_nethost();
+    }
+    else
+    {
+	// Custom absolute path to the SDK.
+	stdfs::path hostfxr_dll = argv[1];
+	loaded = dotnet->hostfxr_load_from_path(hostfxr_dll.c_str());
+    }
 
-    // OPTION 2:
-    // Custom absolute path to the SDK.
-    //stdfs::path hostfxr_dll = "C:/dotnet_sdk/host/fxr/6.0.3/hostfxr.dll";
-    stdfs::path hostfxr_dll = "/tmp/dotnet_sdk/host/fxr/6.0.3/libhostfxr.so";
-    bool loaded = dotnet->hostfxr_load_from_path(hostfxr_dll.c_str());
     if (!loaded)
     {
-	COUT << "Couldn't load hostfxr" << std::endl;
+	COUT << "Couldn't load hostfxr. (use nethost: " << use_nethost << ")" << std::endl;
 	return EXIT_FAILURE;
     }
 

@@ -55,3 +55,13 @@ To then call a managed method, the `hostfxr` api requires four steps:
    * The dotnet type method, which is the static method's name we want to call from native code.
    
 4. Call the function through the pointer returned at the step 3.
+
+
+## Usage
+
+To use the example here:
+1. Compile with `build.[sh/bat]`
+2. Run the `main.[exe/out]` without argument to run with nethost (and then autolocate SDK).
+   OR
+   Run `main.[exe/out] path/to/sdk/hostfxr.[dll,so]` to run with the specified path to hostfxr.
+
