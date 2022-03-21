@@ -53,7 +53,11 @@ struct lib_args
 
     // Relative files locations.
     stdfs::path config_file = prog_path->parent_path() / "build" / "LibSharpHost.runtimeconfig.json";
+    #ifdef WINDOWS
     stdfs::path lib_dll = prog_path->parent_path() / "build" / "LibSharpHost.dll";
+    #else
+    stdfs::path lib_dll = prog_path->parent_path() / "build" / "LibSharpHost.so";
+    #endif
 
     Dotnet_host *dotnet = new Dotnet_host;
 
@@ -64,7 +68,7 @@ struct lib_args
 
     // OPTION 2:
     // Custom absolute path to the SDK.
-    stdfs::path hostfxr_dll = "C:/dotnet-sdk-6.0.201-win-x64/host/fxr/6.0.3/hostfxr.dll";
+    stdfs::path hostfxr_dll = "/home/glihm/Downloads/host/fxr/6.0.3/libhostfxr.so";
     bool loaded = dotnet->hostfxr_load_from_path(hostfxr_dll.c_str());
     if (!loaded)
     {
