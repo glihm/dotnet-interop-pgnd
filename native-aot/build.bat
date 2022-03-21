@@ -4,6 +4,8 @@
 IF EXIST build RMDIR /S /Q build
 mkdir build
 
+dotnet clean libsharp-aot/LibSharpAOT.csproj
+
 :: publish the C# library with AOT options thanks to the imported package ILCompiler.
 dotnet publish --nologo^
        	       -r win-x64^
