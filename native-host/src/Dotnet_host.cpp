@@ -14,18 +14,17 @@ Dotnet_host::Dotnet_host()
 bool
 Dotnet_host::hostfxr_load_from_nethost(void)
 {
-    return false;
-    // char_t buffer[MAX_PATH];
-    // size_t buffer_size = sizeof(buffer) / sizeof(char_t);
+    char_t buffer[MAX_PATH];
+    size_t buffer_size = sizeof(buffer) / sizeof(char_t);
 
-    // // Exposed by nethost.
-    // int rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
-    // if (rc != 0)
-    // {
-    // 	return false;
-    // }
+    // Exposed by nethost.
+    int rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
+    if (rc != 0)
+    {
+	return false;
+    }
 
-    // return hostfxr_load_from_path(buffer);
+    return hostfxr_load_from_path(buffer);
 }
 
 /*
