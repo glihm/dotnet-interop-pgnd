@@ -4,29 +4,30 @@
 #include <string.h>
 #include <assert.h>
 #include <iostream>
+#include <filesystem>
 
-#include <Hostfxr_ctx.h>
+#include <Dotnet_host.h>
 
+namespace stdfs = std::filesystem;
 using string_t = std::basic_string<char_t>;
 
+// Platform imports.
 #ifdef WINDOWS
+std::filesystem::path * resolve_absolute_path(wchar_t *name);
 
-string_t resolve_absolute_path(wchar_t *prog_name);
-#define STR(s) L ## s
-#define CH(c) L ## c
-#define DIR_SEPARATOR L'\\'
+#define STR(s) L##s
 #define COUT std::wcout
 
 #else
 
-string_t resolve_absolute_path(char *prog_name);
+std::filesystem::path * resolve_absolute_path(char *name);
+
 #define STR(s) s
-#define CH(c) c
-#define DIR_SEPARATOR '/'
 #define MAX_PATH PATH_MAX
 #define COUT std::cout
 
 #endif
+
 
 // Defines the structure that is marshalled in managed code.
 struct lib_args
@@ -44,53 +45,54 @@ struct lib_args
     int main(int argc, char *argv[])
 #endif
 {
-    // remove warning.
+    // Remove warning.
+    (void)argc;
 
-    COUT << "0" << std::endl;
-    string_t prog_path = resolve_absolute_path(argv[0]);
-    COUT << "Program's absolute path: " << prog_path.c_str() << std::endl;
+    // Get path of the current program to load files with relative paths.
+    stdfs::path *prog_path = resolve_absolute_path(argv[0]);
 
-    COUT << "1" << std::endl;
+    // Relative files locations.
+    stdfs::path config_file = prog_path->parent_path() / "build" / "LibSharpHost.runtimeconfig.json";
+    stdfs::path lib_dll = prog_path->parent_path() / "build" / "LibSharpHost.dll";
 
-    Hostfxr_ctx *hfxr = new Hostfxr_ctx;
-    assert(hfxr->is_ready && "Hostfxr not loaded");
+    Dotnet_host *dotnet = new Dotnet_host;
 
-    COUT << "2" << std::endl;
+    // Step 1: load hostfxr.
+    // OPTION 1:
+    // Nethost automatically searches for the installed hostfxr.dll.
+    //bool loaded = dotnet->hostfxr_load_from_nethost();
 
-    // FIXME: faire une fonction libloader -> qui attend juste path to LibSharp,
-    // and will search for configuration file just next to this?
-
-    // NOOB -> need to load runtime assembly first with config.............!
-    // this file is the .deps.json, generated when compiled.
-    // same here, use WINDOWS to know the separator.
-    string_t config_file = prog_path + STR("build\\LibSharp.runtimeconfig.json");
-    COUT << "config file " << config_file << std::endl;
-
-    bool runtime_loaded = hfxr->dotnet_assembly_load(config_file.c_str());
-    if (!runtime_loaded)
+    // OPTION 2:
+    // Custom absolute path to the SDK.
+    stdfs::path hostfxr_dll = "C:/dotnet-sdk-6.0.201-win-x64/host/fxr/6.0.3/hostfxr.dll";
+    bool loaded = dotnet->hostfxr_load_from_path(hostfxr_dll.c_str());
+    if (!loaded)
     {
-	COUT << "Couldn't load .net runtime for config " << config_file << std::endl;
+	COUT << "Couldn't load hostfxr" << std::endl;
 	return EXIT_FAILURE;
     }
 
-    // check here to use something better to merge the  paths??
-    // use if windows...!
-    string_t lib_path = prog_path + STR("build\\LibSharp.dll");
-    //COUT << "Lib path" << lib_path.c_str() << std::endl;
+    // Step 2: load and configure the runtime.
+    loaded = dotnet->runtime_load(config_file.c_str());
+    if (!loaded)
+    {
+	COUT << "Couldn't load runtime configuration " << config_file.c_str() << std::endl;
+	return EXIT_FAILURE;
+    }
 
-    component_entry_point_fn hi = hfxr->dotnet_managed_load(
-        lib_path.c_str(),
-	STR("LibSharp.Hello, LibSharp"),
+    // Step 3: load the managed static method.
+    component_entry_point_fn dotnet_hi = dotnet->managed_method_load(
+        lib_dll.c_str(),
+	STR("LibSharpHost.Greeting, LibSharpHost"),
 	STR("Hi"));
 
-    if (hi == nullptr)
+    if (dotnet_hi == nullptr)
     {
-	COUT << "Can't load managed symbol" << std::endl;
+	COUT << "Can't load managed method" << std::endl;
 	return EXIT_FAILURE;
     }
 
-    COUT << "4" << std::endl;
-    // Run managed code.
+    // Step 4: Run managed code.
     for (int i = 0; i < 3; ++i)
     {
 	lib_args args {
@@ -98,7 +100,7 @@ struct lib_args
 	    i
 	};
 
-	int r = hi(&args, sizeof(args));
+	int r = dotnet_hi(&args, sizeof(args));
 	COUT << "return value = " << r << std::endl;
     }
 
@@ -109,9 +111,11 @@ struct lib_args
  * Resolves and gets the full path of a given executable/program name.
  */
 #ifdef WINDOWS
-    string_t resolve_absolute_path(wchar_t *name)
+    stdfs::path *
+    resolve_absolute_path(wchar_t *name)
 #else
-    string_t resolve_absolute_path(char *name)
+    stdfs::path *
+    resolve_absolute_path(char *name)
 #endif
 {
     char_t host_path[MAX_PATH];
@@ -129,10 +133,5 @@ struct lib_args
     assert(resolved != nullptr);
 #endif
 
-    string_t root_path = host_path;
-    auto pos = root_path.find_last_of(DIR_SEPARATOR);
-    assert(pos != string_t::npos);
-    root_path = root_path.substr(0, pos + 1);
-
-    return root_path;
+    return new stdfs::path(host_path);
 }

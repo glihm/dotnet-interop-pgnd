@@ -2,24 +2,22 @@
 
 :: clean
 IF EXIST build RMDIR /S /Q build
-IF EXIST main.exe RM /Q main.exe
 mkdir build
 
-IF EXIST ..\libsharp\bin RMDIR /S /Q ..\libsharp\bin
-
-dotnet clean ../libsharp/LibSharp.csproj
+dotnet clean libsharp-host/LibSharpHost.csproj
 
 dotnet build^
        -c Release^
        -o build^
        /p:DefineConstants=WINDOWS^
        /p:GenerateRuntimeConfigurationFiles=true^
-       ../libsharp/LibSharp.csproj
+       libsharp-host/LibSharpHost.csproj
 
 pushd build
-cl.exe ..\src\Hostfxr_ctx.cpp^
+cl.exe ..\src\Dotnet_host.cpp^
        ..\src\main.cpp^
        /D WINDOWS^
+       /std:c++17^
        /W4^
        /I ..\inc^
        /EHsc^
@@ -31,8 +29,6 @@ cl.exe ..\src\Hostfxr_ctx.cpp^
 popd
 :: add /Zi for debug files.
 
-:: dll must be placed at the same level of the executable.
+:: dll must be placed at the same level of the executable!
+:: the lib folder is just here to old a persistent copy as build is erased on clean.
 Copy lib\nethost.dll .
-
-:: then execute the main as follow
-:: > build/main.exe

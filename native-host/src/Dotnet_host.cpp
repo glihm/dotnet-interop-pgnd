@@ -1,37 +1,49 @@
-#include <Hostfxr_ctx.h>
+#include <Dotnet_host.h>
 
 /*
  *
  */
-Hostfxr_ctx::Hostfxr_ctx()
+Dotnet_host::Dotnet_host()
 {
-    is_ready = hostfxr_load();
+
 }
 
 /*
  *
  */
 bool
-Hostfxr_ctx::hostfxr_load(void)
+Dotnet_host::hostfxr_load_from_nethost(void)
 {
-    char_t buffer[MAX_PATH];
-    size_t buffer_size = sizeof(buffer) / sizeof(char_t);
+    return false;
+    // char_t buffer[MAX_PATH];
+    // size_t buffer_size = sizeof(buffer) / sizeof(char_t);
 
-    // Exposed by nethost.
-    int rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
-    if (rc != 0)
-    {
-	return false;
-    }
+    // // Exposed by nethost.
+    // int rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
+    // if (rc != 0)
+    // {
+    // 	return false;
+    // }
+
+    // return hostfxr_load_from_path(buffer);
+}
+
+/*
+ *
+ */
+bool
+Dotnet_host::hostfxr_load_from_path(const char_t *hostfxr_path)
+{
+    COUT << "loading hostfxr from: " << hostfxr_path << std::endl;
 
     // Load hostfxr and get functions to be used afterwards during assembly loading.
-    void *lib = library_load(buffer);
+    void *lib = library_load(hostfxr_path);
     if (lib == nullptr)
     {
 	return false;
     }
 
-    hostfxr_init = (hostfxr_initialize_for_runtime_config_fn)symbol_get_addr(
+    hostfxr_init_cfg = (hostfxr_initialize_for_runtime_config_fn)symbol_get_addr(
 	lib,
 	"hostfxr_initialize_for_runtime_config");
 
@@ -44,11 +56,10 @@ Hostfxr_ctx::hostfxr_load(void)
 	"hostfxr_close");
 
     bool loaded =
-	hostfxr_init != nullptr
+	hostfxr_init_cfg != nullptr
 	&& hostfxr_get_runtime_delegate != nullptr
 	&& hostfxr_close != nullptr;
 
-    std::wcout << "hostfxr LOADED: " << loaded << std::endl;
     return loaded;
 }
 
@@ -56,14 +67,13 @@ Hostfxr_ctx::hostfxr_load(void)
  *
  */
 void
-*Hostfxr_ctx::library_load(const char_t *path)
+*Dotnet_host::library_load(const char_t *path)
 {
 #ifdef WINDOWS
     HMODULE h = ::LoadLibraryW(path);
 #else
     void *h = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 #endif
-    assert(h != nullptr);
     return (void*)h;
 }
 
@@ -71,14 +81,13 @@ void
  *
  */
 void
-*Hostfxr_ctx::symbol_get_addr(void *handle, const char *name)
+*Dotnet_host::symbol_get_addr(void *handle, const char *name)
 {
 #ifdef WINDOWS
     void *addr = ::GetProcAddress((HMODULE)handle, name);
 #else
     void *addr = dlsym(handle, name);
 #endif
-    assert(addr != nullptr);
     return addr;    
 }
 
@@ -86,11 +95,11 @@ void
  *
  */
 bool
-Hostfxr_ctx::dotnet_assembly_load(const char_t *config_path)
+Dotnet_host::runtime_load(const char_t *config_path)
 {
-    // Load .NET Core
+    // Load .NET runtime
     hostfxr_handle cxt = nullptr;
-    int rc = hostfxr_init(config_path, nullptr, &cxt);
+    int rc = hostfxr_init_cfg(config_path, nullptr, &cxt);
     if (rc != 0 || cxt == nullptr)
     {
 	std::cerr << "Init failed: " << std::hex << std::showbase << rc << std::endl;
@@ -121,14 +130,10 @@ Hostfxr_ctx::dotnet_assembly_load(const char_t *config_path)
  *
  */
 component_entry_point_fn
-Hostfxr_ctx::dotnet_managed_load(const char_t *lib_file,
+Dotnet_host::managed_method_load(const char_t *lib_file,
 				 const char_t *dotnet_type,
 				 const char_t *dotnet_type_method)
 {
-    std::wcout << lib_file << std::endl;
-    std::wcout << dotnet_type << std::endl;
-    std::wcout << dotnet_type_method << std::endl;
-
     component_entry_point_fn method = nullptr;
 
     int rc = runtime_managed_load(
@@ -138,8 +143,6 @@ Hostfxr_ctx::dotnet_managed_load(const char_t *lib_file,
 	nullptr /*delegate_type_name*/,
 	nullptr,
 	(void**)&method);
-
-    std::wcout << "HHH! " << (method != nullptr) << std::endl;
 
     return rc ? nullptr : method;
 }
