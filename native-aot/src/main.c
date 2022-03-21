@@ -12,7 +12,11 @@ int main()
 {
     libsharp_aot_t lib;
 
+    #ifdef LINUX
+    int rc = libsharp_aot_init("./build/LibSharpAOT.so", &lib);
+    #else
     int rc = libsharp_aot_init("./build/LibSharpAOT.dll", &lib);
+    #endif
     if (rc)
     {
 	printf("Library could not be loaded or symbol not found (%d).\n", rc);
