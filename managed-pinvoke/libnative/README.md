@@ -17,3 +17,4 @@ The flag `/D WINDOWS` is important as the code is conditionally pre-processed de
 
 ### Linux
 
+`$ bash build.sh`
