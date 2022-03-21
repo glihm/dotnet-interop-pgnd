@@ -24,6 +24,7 @@
 #include <dlfcn.h>
 #include <limits.h>
 #define COUT std::cout
+#define MAX_PATH PATH_MAX
 
 #endif
 
