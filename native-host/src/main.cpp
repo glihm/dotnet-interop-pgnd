@@ -46,18 +46,9 @@ struct lib_args
 #endif
 {
     // Remove warning.
-    (void)argc;
 
     // Get path of the current program to load files with relative paths.
     stdfs::path *prog_path = resolve_absolute_path(argv[0]);
-
-    // Relative files locations.
-    stdfs::path config_file = prog_path->parent_path() / "build" / "LibSharpHost.runtimeconfig.json";
-    #ifdef WINDOWS
-    stdfs::path lib_dll = prog_path->parent_path() / "build" / "LibSharpHost.dll";
-    #else
-    stdfs::path lib_dll = prog_path->parent_path() / "build" / "LibSharpHost.so";
-    #endif
 
     Dotnet_host *dotnet = new Dotnet_host;
 
@@ -68,7 +59,8 @@ struct lib_args
 
     // OPTION 2:
     // Custom absolute path to the SDK.
-    stdfs::path hostfxr_dll = "/home/glihm/Downloads/host/fxr/6.0.3/libhostfxr.so";
+    //stdfs::path hostfxr_dll = "C:/dotnet_sdk/host/fxr/6.0.3/hostfxr.dll";
+    stdfs::path hostfxr_dll = "/tmp/dotnet_sdk/host/fxr/6.0.3/libhostfxr.so";
     bool loaded = dotnet->hostfxr_load_from_path(hostfxr_dll.c_str());
     if (!loaded)
     {
@@ -77,6 +69,7 @@ struct lib_args
     }
 
     // Step 2: load and configure the runtime.
+    stdfs::path config_file = prog_path->parent_path() / "build" / "LibSharpHost.runtimeconfig.json";
     loaded = dotnet->runtime_load(config_file.c_str());
     if (!loaded)
     {
@@ -85,6 +78,7 @@ struct lib_args
     }
 
     // Step 3: load the managed static method.
+    stdfs::path lib_dll = prog_path->parent_path() / "build" / "LibSharpHost.dll";
     component_entry_point_fn dotnet_hi = dotnet->managed_method_load(
         lib_dll.c_str(),
 	STR("LibSharpHost.Greeting, LibSharpHost"),
